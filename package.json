@@ -1,0 +1,54 @@
+{
+  "name": "pilkarz-pwa",
+  "private": true,
+  "version": "1.0.1",
+  "main": "electron.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "electron": "electron electron.cjs",
+    "electron:build": "npm run build && electron-builder"
+  },
+  "dependencies": {
+    "@google/genai": "^2.17.1",
+    "@netlify/blobs": "^10.7.13",
+    "@zxing/browser": "^0.1.5",
+    "electron-updater": "^6.8.9",
+    "lucide-react": "^0.383.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^2.12.7",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "electron": "^43.4.0",
+    "electron-builder": "^26.15.3",
+    "vite": "^5.4.0",
+    "vite-plugin-pwa": "^0.20.5"
+  },
+  "build": {
+  "appId": "pl.footballos.app",
+  "productName": "FootballOS",
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "TWOJ_LOGIN_GITHUB",
+      "repo": "TWOJE_REPO
+    }
+  ],
+    "files": [
+      "dist/**/*",
+      "electron.cjs",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis"
+    }
+  }
+}

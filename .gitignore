@@ -1,0 +1,18 @@
+# Netlify
+.netlify/
+
+# Dependencies
+node_modules/
+
+# Build
+dist/
+release/
+
+# Environment variables
+.env
+.env.*
+
+# Logs
+npm-debug.log*
+
+src/haslo.txt
