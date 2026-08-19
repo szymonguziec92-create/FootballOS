@@ -1604,7 +1604,7 @@ function CalendarTab({ data, update }) {
         </div>
         <button className="iconBtn" onClick={() => shift(1)}><ChevronRight size={18} /></button>
       </div>
-{view === "day" && <DayView data={filteredData} date={cursor} onEdit={setEditing} update={update} />}
+{view === "day" && <DayView data={filteredData} cursor={cursor} onEdit={setEditing} update={update} />}
 {view === "week" && <WeekView data={filteredData} cursor={cursor} onPick={setCursor} onEdit={setEditing} update={update} />}
 {view === "month" && <MonthView data={filteredData} cursor={cursor} onPick={(d) => { setCursor(d); setView("day"); }} />}
 
