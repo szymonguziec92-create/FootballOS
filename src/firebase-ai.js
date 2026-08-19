@@ -40,44 +40,57 @@ function getModel() {
   return model;
 }
 
-function toFirebaseParts(messages, system = "") {
+function toFirebaseParts(message) {
   const parts = [];
 
-  if (system) {
-    parts.push({
-      text: `Instrukcja systemowa:\n${system}`,
-    });
+  if (typeof message?.content === "string" && message.content.trim()) {
+    parts.push({ text: message.content });
   }
 
-  for (const message of messages || []) {
-    if (typeof message.content === "string" && message.content.trim()) {
-      parts.push({
-        text: `${message.role === "assistant" ? "Asystent" : "Użytkownik"}: ${message.content}`,
-      });
-      continue;
-    }
+  if (Array.isArray(message?.content)) {
+    for (const item of message.content) {
+      if (item.type === "text") {
+        parts.push({ text: item.text || "" });
+      }
 
-    if (Array.isArray(message.content)) {
-      for (const item of message.content) {
-        if (item.type === "text" && item.text) {
-          parts.push({
-            text: `${message.role === "assistant" ? "Asystent" : "Użytkownik"}: ${item.text}`,
-          });
-        }
-
-        if (item.type === "image" && item.source?.data) {
-          parts.push({
-            inlineData: {
-              mimeType: item.source.media_type || "image/jpeg",
-              data: item.source.data,
-            },
-          });
-        }
+      if (item.type === "image" && item.source?.data) {
+        parts.push({
+          inlineData: {
+            mimeType: item.source.media_type || "image/jpeg",
+            data: item.source.data,
+          },
+        });
       }
     }
   }
 
   return parts;
+}
+
+function toFirebasePrompt(system, messages) {
+  const prompt = [];
+
+  if (system?.trim()) {
+    prompt.push(`Instrukcja systemowa:\n${system.trim()}`);
+  }
+
+  for (const message of messages || []) {
+    const parts = toFirebaseParts(message);
+    if (parts.length === 0) continue;
+
+    // Firebase AI Logic Web accepts a prompt made from strings/parts.
+    // We preserve conversation roles as plain text so the SDK does not
+    // receive nested { role, parts } objects where it expects Part objects.
+    if (message.role === "assistant") {
+      prompt.push("Odpowiedź asystenta:\n" + parts.filter((p) => p.text).map((p) => p.text).join("\n"));
+    } else if (message.role === "user") {
+      prompt.push(...parts);
+    } else {
+      prompt.push(...parts);
+    }
+  }
+
+  return prompt;
 }
 
 export function firebaseAIConfigured() {
@@ -86,12 +99,12 @@ export function firebaseAIConfigured() {
 
 export async function firebaseAICall({ system = "", messages = [] }) {
   const generativeModel = getModel();
-  const parts = toFirebaseParts(messages, system);
+  const prompt = toFirebasePrompt(system, messages);
 
-  if (!parts.length) {
-    throw new Error("FIREBASE_AI_EMPTY_PROMPT");
+  if (prompt.length === 0) {
+    throw new Error("EMPTY_AI_PROMPT");
   }
 
-  const result = await generativeModel.generateContent(parts);
+  const result = await generativeModel.generateContent(prompt);
   return result.response.text() || "";
 }
