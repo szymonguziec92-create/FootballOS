@@ -2121,7 +2121,6 @@ function FootballTraining({ data, update }) {
     onFinish={() => setPlayingWorkout(null)}
     onClose={() => setPlayingWorkout(null)}
   />
-)}
       )}
     </div>
   );
