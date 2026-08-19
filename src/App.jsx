@@ -2684,6 +2684,7 @@ function ExerciseForm({ onSave, onClose }) {
 
 function StrengthWorkoutBuilder({ exercises, onSave, onClose }) {
   const [name, setName] = useState("");
+  const [warmup, setWarmup] = useState(5);
   const [groups, setGroups] = useState([]);
   const [exIds, setExIds] = useState([]);
   const toggleGroup = (g) => setGroups((gs) => gs.includes(g) ? gs.filter((x) => x !== g) : [...gs, g]);
@@ -2692,6 +2693,21 @@ function StrengthWorkoutBuilder({ exercises, onSave, onClose }) {
   return (
     <Modal title="Nowy trening siłowy" onClose={onClose}>
       <div className="field"><label className="label">Nazwa treningu</label><input className="inp" value={name} onChange={(e) => setName(e.target.value)} placeholder="np. Siła nóg — poniedziałek" /></div>
+      <div className="field">
+  <label className="label">
+    Rozgrzewka (min)
+  </label>
+
+  <input
+    type="number"
+    min="0"
+    className="inp"
+    value={warmup}
+    onChange={(e) =>
+      setWarmup(Math.max(0, Number(e.target.value)))
+    }
+  />
+</div>
       <div className="label">Partie ciała</div>
       <div className="row" style={{ flexWrap: "wrap", marginBottom: 10 }}>
         {MUSCLE_GROUPS.map((g) => <span key={g.id} className={"chip" + (groups.includes(g.id) ? " active" : "")} onClick={() => toggleGroup(g.id)}>{g.label}</span>)}
