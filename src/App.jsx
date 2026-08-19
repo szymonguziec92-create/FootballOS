@@ -2100,7 +2100,7 @@ function FootballTraining({ data, update }) {
           onSave={saveDrill}
           onClose={() => setBuilderOpen(false)}
         />
-      )}
+      
 
     {workoutBuilderOpen && (
   <FootballWorkoutBuilder
