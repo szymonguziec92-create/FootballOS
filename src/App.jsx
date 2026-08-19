@@ -3099,7 +3099,7 @@ function TrainingGeneratorTab({ data }) {
 
   const drills = data.drills || [];
 
-  const generate = () => {
+ const generate = () => {
   const allDrills = Array.isArray(data.drills) ? data.drills : [];
 
   if (allDrills.length === 0) {
@@ -3108,18 +3108,53 @@ function TrainingGeneratorTab({ data }) {
     return;
   }
 
-  const selectedGoal = String(goal || "").toLowerCase().trim();
+  const goalMap = {
+    "Technika": ["technika", "ball control", "kontrola", "prowadzenie"],
+    "Drybling": ["drybling", "dryblingi", "zwody", "prowadzenie"],
+    "Strzały": ["strzały", "strzał", "shooting", "finishing", "wykończenie"],
+    "Szybkość": ["szybkość", "speed", "sprint", "przyspieszenie"],
+    "Podania": ["podania", "podanie", "passing", "pass"]
+  };
 
-  const matching = allDrills.filter((d) => {
-    const category = String(d.category || "").toLowerCase().trim();
-    const name = String(d.name || "").toLowerCase().trim();
+  const keywords = goalMap[goal] || [];
 
-    return (
-      !selectedGoal ||
-      category.includes(selectedGoal) ||
-      name.includes(selectedGoal)
-    );
+  const matching = allDrills.filter((drill) => {
+    const text = `
+      ${drill.name || ""}
+      ${drill.category || ""}
+      ${drill.description || ""}
+      ${drill.tags || ""}
+    `.toLowerCase();
+
+    return keywords.some((keyword) => text.includes(keyword));
   });
+
+  // Jeśli nie ma ćwiczeń pasujących do celu,
+  // używamy wszystkich dostępnych ćwiczeń.
+  const pool = matching.length > 0 ? matching : allDrills;
+
+  // Losowanie ćwiczeń
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+
+  let remaining = Number(duration) || 30;
+  const result = [];
+
+  for (const drill of shuffled) {
+    if (remaining <= 0) break;
+
+    const originalDuration = Number(drill.duration) || 5;
+    const generatedDuration = Math.min(originalDuration, remaining);
+
+    result.push({
+      ...drill,
+      generatedDuration
+    });
+
+    remaining -= generatedDuration;
+  }
+
+  setGenerated(result);
+};
 
   // Jeśli nie znaleziono ćwiczeń dla celu,
   // generator korzysta ze wszystkich ćwiczeń.
