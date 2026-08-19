@@ -2094,15 +2094,15 @@ function FootballTraining({ data, update }) {
         </div>
       ))}
 
-      {builderOpen && (
-        <DrillBuilder
-          initial={editingDrill}
-          onSave={saveDrill}
-          onClose={() => setBuilderOpen(false)}
-        />
-      
+     {builderOpen && (
+  <DrillBuilder
+    initial={editingDrill}
+    onSave={saveDrill}
+    onClose={() => setBuilderOpen(false)}
+  />
+)}
 
-    {workoutBuilderOpen && (
+{workoutBuilderOpen && (
   <FootballWorkoutBuilder
     initial={
       typeof workoutBuilderOpen === "object"
