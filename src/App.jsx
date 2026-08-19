@@ -3100,39 +3100,53 @@ function TrainingGeneratorTab({ data }) {
   const drills = data.drills || [];
 
   const generate = () => {
-    const matching = drills.filter(
-      (d) =>
-        !goal ||
-        String(d.category || "")
-          .toLowerCase()
-          .includes(goal.toLowerCase())
+  const allDrills = Array.isArray(data.drills) ? data.drills : [];
+
+  if (allDrills.length === 0) {
+    setGenerated([]);
+    alert("Nie masz jeszcze żadnych ćwiczeń w bibliotece.");
+    return;
+  }
+
+  const selectedGoal = String(goal || "").toLowerCase().trim();
+
+  const matching = allDrills.filter((d) => {
+    const category = String(d.category || "").toLowerCase().trim();
+    const name = String(d.name || "").toLowerCase().trim();
+
+    return (
+      !selectedGoal ||
+      category.includes(selectedGoal) ||
+      name.includes(selectedGoal)
     );
+  });
 
-    const pool = matching.length ? matching : drills;
+  // Jeśli nie znaleziono ćwiczeń dla celu,
+  // generator korzysta ze wszystkich ćwiczeń.
+  const pool = matching.length > 0 ? matching : allDrills;
 
-    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
 
-    let total = 0;
-    const result = [];
+  let total = 0;
+  const result = [];
 
-    for (const drill of shuffled) {
-      if (total >= duration) break;
+  for (const drill of shuffled) {
+    if (total >= duration) break;
 
-      const mins = Math.min(
-        Number(drill.duration) || 5,
-        duration - total
-      );
+    const drillDuration = Number(drill.duration) || 5;
+    const remaining = duration - total;
+    const mins = Math.min(drillDuration, remaining);
 
-      result.push({
-        ...drill,
-        generatedDuration: mins,
-      });
+    result.push({
+      ...drill,
+      generatedDuration: mins,
+    });
 
-      total += mins;
-    }
+    total += mins;
+  }
 
-    setGenerated(result);
-  };
+  setGenerated(result);
+};
 
   return (
     <div>
