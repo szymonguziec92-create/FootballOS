@@ -1900,6 +1900,341 @@ function FootballTraining({ data, update }) {
     </div>
   );
 }
+function FootballWorkoutBuilder({
+  initial,
+  drills,
+  onSave,
+  onClose,
+}) {
+  const [name, setName] = useState(
+    initial?.name || ""
+  );
+
+  const [steps, setSteps] = useState(
+    initial?.steps || []
+  );
+
+  const addStep = (type) => {
+    if (type === "drill") {
+      setSteps((items) => [
+        ...items,
+        {
+          id: uid(),
+          type: "drill",
+          drillId: drills[0]?.id || "",
+          title: drills[0]?.name || "Ćwiczenie",
+          duration: drills[0]?.duration || 10,
+        },
+      ]);
+
+      return;
+    }
+
+    const presets = {
+      warmup: {
+        title: "Rozgrzewka",
+        duration: 10,
+      },
+      juggling: {
+        title: "Kapki",
+        duration: 5,
+      },
+      cooldown: {
+        title: "Schłodzenie",
+        duration: 5,
+      },
+    };
+
+    const preset = presets[type];
+
+    setSteps((items) => [
+      ...items,
+      {
+        id: uid(),
+        type,
+        title: preset.title,
+        duration: preset.duration,
+      },
+    ]);
+  };
+
+  const updateStep = (id, key, value) => {
+    setSteps((items) =>
+      items.map((step) => {
+        if (step.id !== id) return step;
+
+        if (key === "drillId") {
+          const drill = drills.find(
+            (d) => d.id === value
+          );
+
+          return {
+            ...step,
+            drillId: value,
+            title: drill?.name || "Ćwiczenie",
+            duration: drill?.duration || step.duration,
+          };
+        }
+
+        return {
+          ...step,
+          [key]: value,
+        };
+      })
+    );
+  };
+
+  const removeStep = (id) => {
+    setSteps((items) =>
+      items.filter((step) => step.id !== id)
+    );
+  };
+
+  const moveStep = (index, direction) => {
+    const newIndex = index + direction;
+
+    if (
+      newIndex < 0 ||
+      newIndex >= steps.length
+    ) {
+      return;
+    }
+
+    const copy = [...steps];
+
+    [copy[index], copy[newIndex]] = [
+      copy[newIndex],
+      copy[index],
+    ];
+
+    setSteps(copy);
+  };
+
+  const totalMinutes = steps.reduce(
+    (sum, step) =>
+      sum + Number(step.duration || 0),
+    0
+  );
+
+  const save = () => {
+    if (!name.trim()) {
+      alert("Podaj nazwę treningu.");
+      return;
+    }
+
+    if (!steps.length) {
+      alert("Dodaj przynajmniej jeden etap treningu.");
+      return;
+    }
+
+    onSave({
+      id: initial?.id || uid(),
+      name: name.trim(),
+      category: "football",
+      steps: steps.map((step, index) => ({
+        ...step,
+        order: index,
+        duration: Number(step.duration) || 1,
+      })),
+      duration: totalMinutes,
+    });
+  };
+
+  return (
+    <Modal
+      title={
+        initial
+          ? "Edytuj gotowy trening"
+          : "Nowy gotowy trening piłkarski"
+      }
+      onClose={onClose}
+    >
+      <div className="field">
+        <label className="label">
+          Nazwa treningu
+        </label>
+
+        <input
+          className="inp"
+          value={name}
+          onChange={(e) =>
+            setName(e.target.value)
+          }
+          placeholder="np. Trening techniczny A"
+        />
+      </div>
+
+      <div className="card">
+        <div className="cardTitle">
+          Dodaj etap
+        </div>
+
+        <div
+          className="row"
+          style={{
+            flexWrap: "wrap",
+          }}
+        >
+          <button
+            className="btnGhost btnSmall"
+            onClick={() => addStep("warmup")}
+          >
+            🔥 Rozgrzewka
+          </button>
+
+          <button
+            className="btnGhost btnSmall"
+            onClick={() => addStep("juggling")}
+          >
+            ⚽ Kapki
+          </button>
+
+          <button
+            className="btnGhost btnSmall"
+            onClick={() => addStep("drill")}
+          >
+            🎯 Ćwiczenie
+          </button>
+
+          <button
+            className="btnGhost btnSmall"
+            onClick={() => addStep("cooldown")}
+          >
+            🧊 Schłodzenie
+          </button>
+        </div>
+      </div>
+
+      {steps.length === 0 && (
+        <div className="listEmpty">
+          Trening nie ma jeszcze żadnych etapów.
+        </div>
+      )}
+
+      {steps.map((step, index) => (
+        <div
+          key={step.id}
+          className="card"
+          style={{
+            background: "var(--card2)",
+          }}
+        >
+          <div
+            className="between"
+            style={{
+              marginBottom: 8,
+            }}
+          >
+            <strong>
+              {index + 1}. {step.title}
+            </strong>
+
+            <button
+              className="btnDanger btnSmall"
+              onClick={() =>
+                removeStep(step.id)
+              }
+            >
+              <Trash2 size={12} />
+            </button>
+          </div>
+
+          {step.type === "drill" && (
+            <div className="field">
+              <label className="label">
+                Ćwiczenie
+              </label>
+
+              <select
+                className="inp"
+                value={step.drillId}
+                onChange={(e) =>
+                  updateStep(
+                    step.id,
+                    "drillId",
+                    e.target.value
+                  )
+                }
+              >
+                {drills.map((drill) => (
+                  <option
+                    key={drill.id}
+                    value={drill.id}
+                  >
+                    {drill.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="field">
+            <label className="label">
+              Czas (min)
+            </label>
+
+            <input
+              type="number"
+              min="1"
+              className="inp"
+              value={step.duration}
+              onChange={(e) =>
+                updateStep(
+                  step.id,
+                  "duration",
+                  Number(e.target.value)
+                )
+              }
+            />
+          </div>
+
+          <div className="row">
+            <button
+              className="btnGhost btnSmall"
+              disabled={index === 0}
+              onClick={() =>
+                moveStep(index, -1)
+              }
+            >
+              ↑
+            </button>
+
+            <button
+              className="btnGhost btnSmall"
+              disabled={
+                index === steps.length - 1
+              }
+              onClick={() =>
+                moveStep(index, 1)
+              }
+            >
+              ↓
+            </button>
+          </div>
+        </div>
+      ))}
+
+      <div className="card">
+        <div className="between">
+          <span>Łączny czas</span>
+          <strong>{totalMinutes} min</strong>
+        </div>
+      </div>
+
+      <button
+        className="btn"
+        style={{
+          width: "100%",
+          justifyContent: "center",
+        }}
+        onClick={save}
+      >
+        <Save size={16} />
+        Zapisz trening
+      </button>
+    </Modal>
+  );
+}
 
 function DrillBuilder({ initial, onSave, onClose }) {
   const [elements, setElements] = useState(initial?.elements || []);
