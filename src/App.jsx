@@ -3178,7 +3178,7 @@ function StrengthWorkoutBuilder({ exercises, onSave, onClose }) {
         ))}
       </div>
       <button className="btn" style={{ width: "100%", justifyContent: "center", marginTop: 10 }}
-       onClick={() =>
+      onClick={() =>
   name.trim() &&
   exIds.length &&
   onSave({
@@ -3189,8 +3189,10 @@ function StrengthWorkoutBuilder({ exercises, onSave, onClose }) {
     warmup: Number(warmup) || 0,
     preset: false
   })
-} 
-      }><Save size={16} /> Zapisz trening</button>
+}
+>
+  <Save size={16} /> Zapisz trening
+</button>
     </Modal>
   );
 }
