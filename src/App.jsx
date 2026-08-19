@@ -1212,10 +1212,22 @@ function TodayTab({ data, update, goTo }) {
 
 function EventForm({ initial, data, onSave, onDelete, onClose }) {
   const [ev, setEv] = useState(initial || { id: uid(), title: "", date: todayISO(), time: "17:00", duration: 60, description: "", category: "football", reminder: false, reminderMinutes: 30, drillIds: [], exerciseIds: [] });
+  const [readyWorkoutType, setReadyWorkoutType] = useState("");
+  const [readyWorkoutId, setReadyWorkoutId] = useState("");
   const setF = (k, v) => setEv((e) => ({ ...e, [k]: v }));
   const toggleDrill = (id) => setEv((e) => { const arr = e.drillIds || []; return { ...e, drillIds: arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id] }; });
   const toggleExercise = (id) => setEv((e) => { const arr = e.exerciseIds || []; return { ...e, exerciseIds: arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id] }; });
   const allExercises = data ? [...STRENGTH_EXERCISE_LIB, ...data.strengthExercises] : [];
+  const footballWorkouts = data?.footballWorkouts || [];
+const strengthWorkouts = data?.strengthWorkouts || [];
+
+const selectedFootballWorkout = footballWorkouts.find(
+  (w) => w.id === readyWorkoutId
+);
+
+const selectedStrengthWorkout = strengthWorkouts.find(
+  (w) => w.id === readyWorkoutId
+);
   return (
     <Modal title={initial ? "Edytuj wydarzenie" : "Nowe wydarzenie"} onClose={onClose}>
       <div className="field"><label className="label">Nazwa</label><input className="inp" value={ev.title} onChange={(e) => setF("title", e.target.value)} placeholder="np. Trening przed meczem" /></div>
@@ -1231,6 +1243,175 @@ function EventForm({ initial, data, onSave, onDelete, onClose }) {
           </select>
         </div>
       </div>
+      {(ev.category === "football" || ev.category === "strength") && (
+  <div className="card" style={{ background: "var(--card2)" }}>
+    <div className="cardTitle" style={{ fontSize: 15 }}>
+      📋 Gotowy trening
+    </div>
+
+    <div className="field">
+      <label className="label">
+        Wybierz zapisany trening
+      </label>
+
+      <select
+        className="inp"
+        value={readyWorkoutType}
+        onChange={(e) => {
+          const type = e.target.value;
+          setReadyWorkoutType(type);
+          setReadyWorkoutId("");
+
+          if (type === "football") {
+            setF("category", "football");
+          }
+
+          if (type === "strength") {
+            setF("category", "strength");
+          }
+        }}
+      >
+        <option value="">-- wybierz typ --</option>
+        <option value="football">⚽ Gotowy trening piłkarski</option>
+        <option value="strength">🏋️ Gotowy trening siłowy</option>
+      </select>
+    </div>
+
+    {readyWorkoutType === "football" && (
+      <div className="field">
+        <label className="label">
+          Trening piłkarski
+        </label>
+
+        <select
+          className="inp"
+          value={readyWorkoutId}
+          onChange={(e) => {
+            const id = e.target.value;
+            setReadyWorkoutId(id);
+
+            const workout = footballWorkouts.find(
+              (w) => w.id === id
+            );
+
+            if (!workout) return;
+
+            setF("title", workout.name);
+            setF(
+              "duration",
+              Number(workout.duration) || 0
+            );
+            setF(
+              "description",
+              (workout.steps || [])
+                .map(
+                  (step, i) =>
+                    `${i + 1}. ${step.title} — ${step.duration} min`
+                )
+                .join("\n")
+            );
+            setF(
+              "drillIds",
+              (workout.steps || [])
+                .map((step) => step.drillId)
+                .filter(Boolean)
+            );
+          }}
+        >
+          <option value="">
+            -- wybierz trening --
+          </option>
+
+          {footballWorkouts.map((workout) => (
+            <option key={workout.id} value={workout.id}>
+              {workout.name} — {workout.duration} min
+            </option>
+          ))}
+        </select>
+      </div>
+    )}
+
+    {readyWorkoutType === "strength" && (
+      <div className="field">
+        <label className="label">
+          Trening siłowy
+        </label>
+
+        <select
+          className="inp"
+          value={readyWorkoutId}
+          onChange={(e) => {
+            const id = e.target.value;
+            setReadyWorkoutId(id);
+
+            const workout = strengthWorkouts.find(
+              (w) => w.id === id
+            );
+
+            if (!workout) return;
+
+            setF("title", workout.name);
+
+            setF(
+              "duration",
+              Number(workout.duration) ||
+                45
+            );
+
+            setF(
+              "description",
+              workout.warmup
+                ? `Rozgrzewka — ${workout.warmup} min\n\n` +
+                  (workout.exIds || [])
+                    .map((exerciseId) => {
+                      const ex = allExercises.find(
+                        (x) => x.id === exerciseId
+                      );
+
+                      if (!ex) return null;
+
+                      return `${ex.name} — ${ex.sets} serie × ${
+                        ex.reps || `${ex.time}s`
+                      }`;
+                    })
+                    .filter(Boolean)
+                    .join("\n")
+                : (workout.exIds || [])
+                    .map((exerciseId) => {
+                      const ex = allExercises.find(
+                        (x) => x.id === exerciseId
+                      );
+
+                      if (!ex) return null;
+
+                      return `${ex.name} — ${ex.sets} serie × ${
+                        ex.reps || `${ex.time}s`
+                      }`;
+                    })
+                    .filter(Boolean)
+                    .join("\n")
+            );
+
+            setF(
+              "exerciseIds",
+              workout.exIds || []
+            );
+          }}
+        >
+          <option value="">
+            -- wybierz trening --
+          </option>
+
+          {strengthWorkouts.map((workout) => (
+            <option key={workout.id} value={workout.id}>
+              {workout.name}
+            </option>
+          ))}
+        </select>
+      </div>
+    )}
+  </div>
+)}
       <div className="field"><label className="label">Opis</label><textarea className="inp" rows={3} value={ev.description} onChange={(e) => setF("description", e.target.value)} /></div>
 
       {ev.category === "football" && data && (
