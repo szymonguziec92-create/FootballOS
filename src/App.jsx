@@ -1035,7 +1035,8 @@ function TodayTab({ data, update, goTo }) {
   const kcalTarget = data.profile.kcalTarget || 2600;
   const waterToday = getWaterAmount(data, t);
   const waterTarget = data.profile.waterTarget || 2200;
-  const addWater = (ml) => update((d) => { d.water[t] = Math.max(0, (d.water[t] || 0) + ml); return d; });
+ const addWater = (ml) =>
+  update((d) => changeWater(d, t, ml));
   const weekStart = startOfWeek(t);
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const weekEvents = data.events.filter((e) => weekDays.includes(e.date));
