@@ -1746,6 +1746,7 @@ function FootballTraining({ data, update }) {
   const [builderOpen, setBuilderOpen] = useState(false);
   const [editingDrill, setEditingDrill] = useState(null);
   const [workoutBuilderOpen, setWorkoutBuilderOpen] = useState(false);
+  const [playingWorkout, setPlayingWorkout] = useState(null);
 
   const footballWorkouts = data.footballWorkouts || [];
 
