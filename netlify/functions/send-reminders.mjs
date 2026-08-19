@@ -83,26 +83,31 @@ if (schoolTomorrow.length > 0) {
     } else {
       message = `Ostatnie przypomnienie na dziś:\n${items}\nPrzygotuj się na jutro. 💪`;
     }
+try {
+  console.log("Próba wysłania Push:", reminderKey);
+  console.log("Subscription:", JSON.stringify(subscription));
 
-    try {
-      await webpush.sendNotification(
-        subscription,
-        JSON.stringify({
-          title: "📚 FootballOS — szkoła",
-          body: message,
-          url: "/",
-        })
-      );
+  const result = await webpush.sendNotification(
+    subscription,
+    JSON.stringify({
+      title,
+      body,
+      url: "/",
+    })
+  );
 
-      sentReminders[schoolKey] = new Date().toISOString();
+  console.log("Push wysłany. Status:", result.statusCode);
 
-      await store.setJSON("sent-reminders", sentReminders);
+  sentReminders[reminderKey] = new Date().toISOString();
 
-      console.log("Wysłano szkolne przypomnienie:", schoolKey);
-    } catch (error) {
-      console.error("Błąd wysyłania szkolnego Push:", error);
-    }
-  }
+  await store.setJSON("sent-reminders", sentReminders);
+
+  console.log("Zapisano sent-reminders:", reminderKey);
+} catch (error) {
+  console.error("❌ BŁĄD PUSH:", error);
+  console.error("Status:", error?.statusCode);
+  console.error("Body:", error?.body);
+  console.error("Headers:", error?.headers);
 }
 
   // =========================
