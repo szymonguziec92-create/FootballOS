@@ -171,39 +171,186 @@ async function askAI(profile, options) {
   const {
     system = "",
     messages = [],
-    maxTokens = 1000,
   } = options || {};
 
-  const response = await fetch("/api/ai", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      system,
-      messages,
-      maxTokens,
-    }),
-  });
+  const {
+    firebaseAICall,
+    firebaseAIConfigured,
+  } = await import("./firebase-ai.js");
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    const error = new Error(
-      data?.error || "Nie udało się połączyć z AI."
-    );
-
-    if (data?.error?.includes("GEMINI_API_KEY")) {
-      error.code = "NO_PROVIDER";
-    }
-
-    throw error;
+  if (!firebaseAIConfigured()) {
+    throw new Error("FIREBASE_AI_NOT_CONFIGURED");
   }
 
-  return data.text || "";
+  return await firebaseAICall({
+    system,
+    messages,
+  });
 }
+function AITab({ data }) {
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState([]);
 
+  const sendMessage = async (text = input) => {
+    const question = String(text || "").trim();
+    if (!question || loading) return;
 
+    const userMessage = {
+      role: "user",
+      content: question,
+    };
+
+    setMessages((m) => [...m, userMessage]);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const answer = await askAI(data?.profile || {}, {
+        system:
+          "Jesteś asystentem FootballOS dla młodego piłkarza. " +
+          "Odpowiadaj po polsku, jasno i krótko. " +
+          "Pomagaj w treningu piłkarskim, planowaniu dnia, szkole i korzystaniu z aplikacji.",
+        messages: [
+          ...messages,
+          userMessage,
+        ],
+        maxTokens: 700,
+      });
+
+      setMessages((m) => [
+        ...m,
+        {
+          role: "assistant",
+          content: answer || "Nie otrzymałem odpowiedzi.",
+        },
+      ]);
+    } catch (error) {
+      setMessages((m) => [
+        ...m,
+        {
+          role: "assistant",
+          content:
+            error?.message === "FIREBASE_AI_NOT_CONFIGURED"
+              ? "AI nie jest jeszcze skonfigurowane w Firebase."
+              : `Błąd AI: ${error?.message || "Nie udało się uzyskać odpowiedzi."}`,
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <div
+        className="card"
+        style={{
+          background: "linear-gradient(135deg, var(--card), var(--card2))",
+        }}
+      >
+        <div className="cardTitle">
+          <Bot size={18} />
+          Asystent FootballOS
+        </div>
+
+        <div className="muted">
+          Zapytaj o trening, ćwiczenia, regenerację albo plan dnia.
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="row" style={{ flexWrap: "wrap", gap: 6 }}>
+          <button
+            className="btnGhost btnSmall"
+            onClick={() => sendMessage("Co mogę dziś zrobić na treningu?")}
+          >
+            ⚽ Trening
+          </button>
+
+          <button
+            className="btnGhost btnSmall"
+            onClick={() => sendMessage("Jak poprawić drybling?")}
+          >
+            🏃 Drybling
+          </button>
+
+          <button
+            className="btnGhost btnSmall"
+            onClick={() => sendMessage("Jak zaplanować regenerację po treningu?")}
+          >
+            🧊 Regeneracja
+          </button>
+        </div>
+      </div>
+
+      <div className="card">
+        {messages.length === 0 && (
+          <div className="muted">
+            Napisz pierwszą wiadomość.
+          </div>
+        )}
+
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            style={{
+              marginBottom: 10,
+              padding: 10,
+              borderRadius: 10,
+              background:
+                message.role === "user"
+                  ? "var(--card2)"
+                  : "var(--bg)",
+            }}
+          >
+            <div
+              className="muted"
+              style={{ fontSize: 10, marginBottom: 4 }}
+            >
+              {message.role === "user" ? "Ty" : "FootballOS AI"}
+            </div>
+
+            <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
+              {message.content}
+            </div>
+          </div>
+        ))}
+
+        {loading && (
+          <div className="muted">
+            AI myśli…
+          </div>
+        )}
+      </div>
+
+      <div className="card">
+        <div className="row">
+          <input
+            className="inp"
+            style={{ flex: 1 }}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                sendMessage();
+              }
+            }}
+            placeholder="Napisz wiadomość…"
+          />
+
+          <button
+            className="btn"
+            onClick={() => sendMessage()}
+            disabled={loading || !input.trim()}
+          >
+            <Send size={16} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 const CATEGORIES = {
   football: { label: "Trening piłkarski", color: "#C6FF3D", icon: "⚽" },
   strength: { label: "Trening siłowy", color: "#FF5A36", icon: "🏋️" },
@@ -609,15 +756,15 @@ export default function App() {
     const id = setInterval(check, 30000);
     return () => clearInterval(id);
   }, [loaded, data.settings?.notificationsEnabled, data.events, data.remindedLog, update]);
+const enableNotifications = async () => {
+  try {
+    const subscription = await subscribeToPush();
 
-    const enableNotifications = async () => {
-    try {
-      await subscribeToPush();
-
-      update((d) => {
-        d.settings.notificationsEnabled = true;
-        return d;
-      });
+    update((d) => {
+      d.settings.notificationsEnabled = true;
+      d.pushSubscription = subscription?.toJSON?.() || subscription;
+      return d;
+    });
 
       alert("Powiadomienia push zostały włączone! 🎉");
     } catch (error) {

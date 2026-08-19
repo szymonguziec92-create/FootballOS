@@ -11,11 +11,14 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
+        "npm:@google/genai@^2.17.1",
         "npm:@netlify/blobs@^10.7.13",
         "npm:@vitejs/plugin-react@^4.3.1",
         "npm:@zxing/browser@~0.1.5",
         "npm:electron-builder@^26.15.3",
+        "npm:electron-updater@^6.8.9",
         "npm:electron@^43.4.0",
+        "npm:firebase@^12.1.0",
         "npm:lucide-react@0.383",
         "npm:react-dom@^18.3.1",
         "npm:react@^18.3.1",
