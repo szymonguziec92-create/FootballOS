@@ -24,6 +24,10 @@ export default async () => {
   webpush.setVapidDetails(subject, publicKey, privateKey);
 
   const now = new Date();
+  console.log("=== FOOTBALLOS DEBUG ===");
+console.log("Teraz:", now.toISOString());
+console.log("Liczba wydarzeń:", events.length);
+console.log("Wydarzenia:", JSON.stringify(events, null, 2));
 
  // =========================
 // SZKOŁA — przypomnienia dzień wcześniej
@@ -131,6 +135,17 @@ if (schoolTomorrow.length > 0) {
 
 const reminderTime = new Date(
   eventTime.getTime() - reminderMinutes * 60 * 1000
+);
+    console.log("=== REMINDER DEBUG ===");
+console.log("Event:", event.title);
+console.log("Data:", event.date);
+console.log("Godzina:", event.time);
+console.log("Reminder minutes:", reminderMinutes);
+console.log("Event time:", eventTime.toISOString());
+console.log("Reminder time:", reminderTime.toISOString());
+console.log(
+  "Różnica sekund:",
+  Math.abs(now.getTime() - reminderTime.getTime()) / 1000
 );
 
     const difference = Math.abs(
