@@ -2352,17 +2352,47 @@ const performanceMeals = allMeals.filter((m) => {
           ))}
         </div>
       </div>
-      <div className="card" style={{ borderLeft: "4px solid var(--accent3)" }}>
-        <div className="cardTitle" style={{ fontSize: 15 }}>💡 Sugestia: {MEAL_TAGS[suggestTag]}</div>
-        <div className="muted" style={{ marginBottom: 8 }}>{suggestReason}</div>
-        {suggestedMeals.length === 0 && <div className="muted">Brak zapisanych propozycji z tym tagiem — dodaj własny posiłek.</div>}
-        {suggestedMeals.map((m) => (
-          <div key={m.id} className="eventItem">
-            <div style={{ flex: 1 }}>{m.name}</div>
-            <button className="btnGhost btnSmall" onClick={() => addMealToDiary(m)}>Dodaj</button>
-          </div>
-        ))}
-      </div>
+    <div className="card" style={{ borderLeft: "4px solid var(--accent3)" }}>
+  <div className="cardTitle" style={{ fontSize: 15 }}>
+    💡 Przekąska na dziś
+  </div>
+
+  <div style={{ fontWeight: 700, fontSize: 16 }}>
+    {dailySnack.name}
+  </div>
+
+  <div className="muted" style={{ marginTop: 5 }}>
+    {dailySnack.kcal} kcal • B{dailySnack.protein} W{dailySnack.carbs} T{dailySnack.fat}
+  </div>
+
+  <div className="muted" style={{ marginTop: 6 }}>
+    {dailySnack.note}
+  </div>
+
+  <button
+    className="btnGhost btnSmall"
+    style={{ marginTop: 10 }}
+    onClick={() =>
+      update((d) => {
+        d.diary[t] = [
+          ...(d.diary[t] || []),
+          {
+            key: uid(),
+            name: dailySnack.name,
+            slot: "snack",
+            kcal: dailySnack.kcal,
+            protein: dailySnack.protein,
+            carbs: dailySnack.carbs,
+            fat: dailySnack.fat,
+          },
+        ];
+        return d;
+      })
+    }
+  >
+    ➕ Dodaj do dziennika
+  </button>
+</div>
 
      <div className="tabs">
   <button className={"tabBtn" + (tab2 === "log" ? " active" : "")} onClick={() => setTab2("log")}>
