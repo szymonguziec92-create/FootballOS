@@ -50,8 +50,8 @@ export default async (req) => {
 
             if (item.type === "image" && item.source?.data) {
               parts.push({
-                inline_data: {
-                  mime_type:
+                inlineData: {
+                  mimeType:
                     item.source.media_type || "image/jpeg",
                   data: item.source.data,
                 },
@@ -133,9 +133,7 @@ export default async (req) => {
       }),
       {
         status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
