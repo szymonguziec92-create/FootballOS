@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { initializeAppCheck, CustomProvider } from "firebase/app-check";
+import { initializeAppCheck, DebugProvider } from "firebase/app-check";
 import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 
 const firebaseConfig = {
@@ -12,7 +12,6 @@ const firebaseConfig = {
 };
 
 const isConfigured = Object.values(firebaseConfig).every(Boolean);
-const appCheckDebugToken = import.meta.env.VITE_FIREBASE_APPCHECK_DEBUG_TOKEN || "";
 
 let model = null;
 let app = null;
@@ -28,28 +27,10 @@ function getFirebaseApp() {
   }
 
   if (!appCheckInitialized) {
-    if (!appCheckDebugToken) {
-      throw new Error("FIREBASE_APPCHECK_DEBUG_TOKEN_MISSING");
-    }
-
-    const provider = new CustomProvider({
-      getToken: async () => ({
-        token: appCheckDebugToken,
-        expireTimeMillis: Date.now() + 60 * 60 * 1000,
-      }),
+    initializeAppCheck(app, {
+      provider: new DebugProvider(),
+      isTokenAutoRefreshEnabled: true,
     });
-
-    try {
-      initializeAppCheck(app, {
-        provider,
-        isTokenAutoRefreshEnabled: true,
-      });
-    } catch (error) {
-      if (!String(error?.message || "").toLowerCase().includes("already")) {
-        throw error;
-      }
-    }
-
     appCheckInitialized = true;
   }
 
@@ -100,7 +81,7 @@ function toFirebaseParts(messages) {
 }
 
 export function firebaseAIConfigured() {
-  return isConfigured && Boolean(appCheckDebugToken);
+  return isConfigured;
 }
 
 export async function firebaseAICall({ system = "", messages = [] }) {
