@@ -2745,7 +2745,191 @@ function Timer({ seconds, onDone, autoStart = true }) {
     </div>
   );
 }
+function FootballWorkoutPlayer({ workout, onFinish, onClose }) {
+  const steps = [...(workout.steps || [])].sort(
+    (a, b) => Number(a.order || 0) - Number(b.order || 0)
+  );
 
+  const [index, setIndex] = useState(0);
+  const [running, setRunning] = useState(false);
+  const [remaining, setRemaining] = useState(
+    Number(steps[0]?.duration || 0) * 60
+  );
+
+  const current = steps[index];
+
+  useEffect(() => {
+    if (!current) return;
+
+    setRemaining(Number(current.duration || 0) * 60);
+    setRunning(false);
+  }, [index]);
+
+  useEffect(() => {
+    if (!running) return;
+
+    if (remaining <= 0) {
+      setRunning(false);
+
+      if (index < steps.length - 1) {
+        setIndex((i) => i + 1);
+      } else {
+        onFinish();
+      }
+
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setRemaining((value) => value - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [running, remaining, index, steps.length, onFinish]);
+
+  if (!steps.length) {
+    return (
+      <Modal title={workout.name} onClose={onClose}>
+        <div className="listEmpty">
+          Ten trening nie ma jeszcze żadnych etapów.
+        </div>
+      </Modal>
+    );
+  }
+
+  const minutes = Math.floor(remaining / 60);
+  const seconds = remaining % 60;
+  const progress =
+    steps.length > 0
+      ? ((index + 1) / steps.length) * 100
+      : 0;
+
+  const nextStep = () => {
+    if (index < steps.length - 1) {
+      setIndex((i) => i + 1);
+    } else {
+      onFinish();
+    }
+  };
+
+  const previousStep = () => {
+    if (index > 0) {
+      setIndex((i) => i - 1);
+    }
+  };
+
+  return (
+    <Modal
+      title={`${workout.name} — ${index + 1}/${steps.length}`}
+      onClose={onClose}
+    >
+      <div className="card" style={{ textAlign: "center" }}>
+        <div
+          className="muted"
+          style={{
+            fontSize: 11,
+            textTransform: "uppercase",
+          }}
+        >
+          AKTUALNY ETAP
+        </div>
+
+        <div
+          style={{
+            fontSize: 28,
+            fontWeight: 900,
+            marginTop: 4,
+          }}
+        >
+          {current.title}
+        </div>
+
+        <div
+          style={{
+            fontSize: 48,
+            fontWeight: 900,
+            fontFamily: "'Barlow Condensed'",
+            marginTop: 12,
+          }}
+        >
+          {pad(minutes)}:{pad(seconds)}
+        </div>
+
+        <div
+          className="progressOuter"
+          style={{ marginTop: 10 }}
+        >
+          <div
+            className="progressInner"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+        <div
+          className="muted"
+          style={{ marginTop: 8 }}
+        >
+          Etap {index + 1} z {steps.length}
+        </div>
+      </div>
+
+      <div
+        className="row"
+        style={{
+          justifyContent: "center",
+          flexWrap: "wrap",
+          marginTop: 12,
+        }}
+      >
+        <button
+          className="btnGhost"
+          onClick={previousStep}
+          disabled={index === 0}
+        >
+          ← Poprzedni
+        </button>
+
+        <button
+          className="btn"
+          onClick={() => setRunning((value) => !value)}
+        >
+          {running ? "⏸ Pauza" : "▶ Start"}
+        </button>
+
+        <button
+          className="btnGhost"
+          onClick={nextStep}
+        >
+          {index === steps.length - 1
+            ? "✅ Zakończ"
+            : "⏭ Następny"}
+        </button>
+      </div>
+
+      {index < steps.length - 1 && (
+        <div
+          className="card"
+          style={{
+            marginTop: 12,
+            background: "var(--card2)",
+          }}
+        >
+          <div className="muted">
+            Następny etap
+          </div>
+
+          <strong>
+            {steps[index + 1].title}
+          </strong>
+
+          <div className="muted">
+            {steps[index + 1].duration} min
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+}
 function WorkoutPlayer({ workout, exercises, onLogExercise, onFinish, onClose }) {
   const list = workout.exIds.map((id) => exercises.find((e) => e.id === id)).filter(Boolean);
   const [idx, setIdx] = useState(0);
