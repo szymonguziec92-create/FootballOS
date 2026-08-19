@@ -1938,16 +1938,46 @@ function FootballTraining({ data, update }) {
             </button>
 
             <button
-              className="btnGhost btnSmall"
-              onClick={() =>
-                alert(
-                  "Dodawanie gotowego treningu do kalendarza zrobimy w następnym kroku."
-                )
-              }
-            >
-              <CalendarIcon size={13} />
-              Dodaj do kalendarza
-            </button>
+  className="btnGhost btnSmall"
+  onClick={() => {
+    const t = todayISO();
+
+    const drillIds = (workout.steps || [])
+      .map((step) => step.drillId)
+      .filter(Boolean);
+
+    update((d) => {
+      d.events = Array.isArray(d.events) ? d.events : [];
+
+      d.events.push({
+        id: uid(),
+        title: workout.name,
+        date: t,
+        time: "17:00",
+        duration: Number(workout.duration) || totalWorkoutMinutes(workout),
+        description: (workout.steps || [])
+          .map(
+            (step, index) =>
+              `${index + 1}. ${step.title} — ${step.duration} min`
+          )
+          .join("\n"),
+        category: "football",
+        reminder: false,
+        reminderMinutes: 30,
+        drillIds,
+        exerciseIds: [],
+        readyWorkout: true,
+        footballWorkoutId: workout.id,
+        workoutSteps: workout.steps || [],
+      });
+
+      return d;
+    });
+  }}
+>
+  <CalendarIcon size={13} />
+  Dodaj do dziś
+</button>
 
             <button
               className="btnDanger btnSmall"
