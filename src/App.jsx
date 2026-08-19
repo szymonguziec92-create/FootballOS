@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import TrainingGeneratorTabNew from "./TrainingGeneratorTabNew.jsx";
 import { getStoredSession, restoreSession, signInWithPassword, signUpWithPassword, signOutCloud, loadCloudData, saveCloudData } from "./cloud-sync.js";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell,
