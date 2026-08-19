@@ -1564,61 +1564,339 @@ function TrainingTab({ data, update }) {
 function FootballTraining({ data, update }) {
   const [builderOpen, setBuilderOpen] = useState(false);
   const [editingDrill, setEditingDrill] = useState(null);
+  const [workoutBuilderOpen, setWorkoutBuilderOpen] = useState(false);
+
+  const footballWorkouts = data.footballWorkouts || [];
 
   const saveDrill = (drill) => {
     update((d) => {
       const i = d.drills.findIndex((x) => x.id === drill.id);
-      if (i >= 0) d.drills[i] = drill; else d.drills.push(drill);
+      if (i >= 0) d.drills[i] = drill;
+      else d.drills.push(drill);
       return d;
     });
-    setBuilderOpen(false); setEditingDrill(null);
-  };
-  const deleteDrill = (id) => update((d) => { d.drills = d.drills.filter((x) => x.id !== id); return d; });
-  const addToToday = (drill) => update((d) => {
-    const t = todayISO();
 
-    const daysLabel = (date) => {
-  const days = diffDays(t, date);
-  if (days === 0) return "Dzisiaj";
-  if (days === 1) return "Jutro";
-  if (days === 2) return "Za 2 dni";
-  return `Za ${days} dni`;
-};
-    d.footballLog[t] = [...(d.footballLog[t] || []), drill.id];
-    d.events.push({ id: uid(), title: `Trening: ${drill.name}`, date: t, time: "17:00", duration: drill.duration || 30, description: drill.description, category: "football", reminder: false, drillIds: [drill.id], exerciseIds: [] });
-    return d;
-  });
+    setBuilderOpen(false);
+    setEditingDrill(null);
+  };
+
+  const deleteDrill = (id) =>
+    update((d) => {
+      d.drills = d.drills.filter((x) => x.id !== id);
+      return d;
+    });
+
+  const addToToday = (drill) =>
+    update((d) => {
+      const t = todayISO();
+
+      d.footballLog[t] = [
+        ...(d.footballLog[t] || []),
+        drill.id,
+      ];
+
+      d.events.push({
+        id: uid(),
+        title: `Trening: ${drill.name}`,
+        date: t,
+        time: "17:00",
+        duration: drill.duration || 30,
+        description: drill.description || "",
+        category: "football",
+        reminder: false,
+        reminderMinutes: 30,
+        drillIds: [drill.id],
+        exerciseIds: [],
+      });
+
+      return d;
+    });
+
+  const saveWorkout = (workout) => {
+    update((d) => {
+      d.footballWorkouts = d.footballWorkouts || [];
+
+      const index = d.footballWorkouts.findIndex(
+        (w) => w.id === workout.id
+      );
+
+      if (index >= 0) {
+        d.footballWorkouts[index] = workout;
+      } else {
+        d.footballWorkouts.push(workout);
+      }
+
+      return d;
+    });
+
+    setWorkoutBuilderOpen(false);
+  };
+
+  const deleteWorkout = (id) => {
+    update((d) => {
+      d.footballWorkouts = (d.footballWorkouts || []).filter(
+        (w) => w.id !== id
+      );
+      return d;
+    });
+  };
+
+  const totalWorkoutMinutes = (workout) =>
+    (workout.steps || []).reduce(
+      (sum, step) => sum + Number(step.duration || 0),
+      0
+    );
 
   return (
     <div>
-      <button className="btn" style={{ marginBottom: 12, width: "100%", justifyContent: "center" }} onClick={() => { setEditingDrill(null); setBuilderOpen(true); }}>
-        <Plus size={16} /> Zaprojektuj nowe ćwiczenie na boisku
-      </button>
-      <div className="cardTitle"><BookOpen size={18} /> Biblioteka ćwiczeń ({data.drills.length})</div>
-      {data.drills.length === 0 && <div className="listEmpty">Nie masz jeszcze zapisanych ćwiczeń. Stwórz pierwsze na boisku 2D.</div>}
-      {data.drills.map((dr) => (
-        <div key={dr.id} className="card">
+      <div className="row" style={{ marginBottom: 12 }}>
+        <button
+          className="btn"
+          style={{ flex: 1, justifyContent: "center" }}
+          onClick={() => setWorkoutBuilderOpen(true)}
+        >
+          <Plus size={16} />
+          Nowy gotowy trening
+        </button>
+
+        <button
+          className="btnGhost"
+          style={{ flex: 1, justifyContent: "center" }}
+          onClick={() => {
+            setEditingDrill(null);
+            setBuilderOpen(true);
+          }}
+        >
+          <Plus size={16} />
+          Nowe ćwiczenie
+        </button>
+      </div>
+
+      <div className="cardTitle">
+        📋 Moje gotowe treningi
+      </div>
+
+      {footballWorkouts.length === 0 && (
+        <div className="listEmpty">
+          Nie masz jeszcze gotowych treningów.
+        </div>
+      )}
+
+      {footballWorkouts.map((workout) => (
+        <div key={workout.id} className="card">
           <div className="between">
-            <div style={{ fontWeight: 700 }}>{dr.name}</div>
-            <span className="pill" style={{ background: "var(--accent)" }}>{dr.category}</span>
+            <div style={{ fontWeight: 800 }}>
+              {workout.name}
+            </div>
+
+            <span
+              className="pill"
+              style={{ background: "var(--accent)" }}
+            >
+              ⚽ {totalWorkoutMinutes(workout)} min
+            </span>
           </div>
-          <div className="muted" style={{ margin: "4px 0" }}>{dr.description}</div>
-          <div className="muted" style={{ fontSize: 12 }}>Cel: {dr.goal || "—"}</div>
-          <div className="row" style={{ marginTop: 8, flexWrap: "wrap", gap: 6 }}>
-            <span className="chip">{dr.sets} serie</span>
-            <span className="chip">{dr.reps} powt.</span>
-            <span className="chip">{dr.duration} min</span>
-            <span className="chip">Odpoczynek {dr.rest}s</span>
-            <span className="chip">{dr.difficulty}</span>
+
+          <div
+            className="muted"
+            style={{ marginTop: 6, marginBottom: 8 }}
+          >
+            {(workout.steps || [])
+              .map((step) => step.title)
+              .join(" → ")}
           </div>
-          <div className="row" style={{ marginTop: 10 }}>
-            <button className="btnGhost btnSmall" onClick={() => { setEditingDrill(dr); setBuilderOpen(true); }}>Edytuj</button>
-            <button className="btnGhost btnSmall" onClick={() => addToToday(dr)}><CalendarIcon size={13} /> Dodaj do dziś</button>
-            <button className="btnDanger btnSmall" onClick={() => deleteDrill(dr.id)}><Trash2 size={13} /></button>
+
+          {(workout.steps || []).map((step, index) => (
+            <div
+              key={step.id}
+              className="eventItem"
+              style={{ marginBottom: 5 }}
+            >
+              <div
+                style={{
+                  fontWeight: 700,
+                  minWidth: 28,
+                }}
+              >
+                {index + 1}
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <div>{step.title}</div>
+
+                <div
+                  className="muted"
+                  style={{ fontSize: 11 }}
+                >
+                  {step.duration} min
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <div
+            className="row"
+            style={{
+              marginTop: 10,
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              className="btnGhost btnSmall"
+              onClick={() => {
+                setWorkoutBuilderOpen(workout);
+              }}
+            >
+              Edytuj
+            </button>
+
+            <button
+              className="btnGhost btnSmall"
+              onClick={() =>
+                alert(
+                  "Dodawanie gotowego treningu do kalendarza zrobimy w następnym kroku."
+                )
+              }
+            >
+              <CalendarIcon size={13} />
+              Dodaj do kalendarza
+            </button>
+
+            <button
+              className="btnDanger btnSmall"
+              onClick={() => deleteWorkout(workout.id)}
+            >
+              <Trash2 size={13} />
+              Usuń
+            </button>
           </div>
         </div>
       ))}
-      {builderOpen && <DrillBuilder initial={editingDrill} onSave={saveDrill} onClose={() => setBuilderOpen(false)} />}
+
+      <div
+        className="cardTitle"
+        style={{ marginTop: 14 }}
+      >
+        <BookOpen size={18} />
+        Biblioteka ćwiczeń ({data.drills.length})
+      </div>
+
+      {data.drills.length === 0 && (
+        <div className="listEmpty">
+          Nie masz jeszcze zapisanych ćwiczeń.
+        </div>
+      )}
+
+      {data.drills.map((dr) => (
+        <div key={dr.id} className="card">
+          <div className="between">
+            <div style={{ fontWeight: 700 }}>
+              {dr.name}
+            </div>
+
+            <span
+              className="pill"
+              style={{ background: "var(--accent)" }}
+            >
+              {dr.category}
+            </span>
+          </div>
+
+          <div
+            className="muted"
+            style={{ margin: "4px 0" }}
+          >
+            {dr.description}
+          </div>
+
+          <div
+            className="muted"
+            style={{ fontSize: 12 }}
+          >
+            Cel: {dr.goal || "—"}
+          </div>
+
+          <div
+            className="row"
+            style={{
+              marginTop: 8,
+              flexWrap: "wrap",
+              gap: 6,
+            }}
+          >
+            <span className="chip">
+              {dr.sets} serie
+            </span>
+
+            <span className="chip">
+              {dr.reps} powt.
+            </span>
+
+            <span className="chip">
+              {dr.duration} min
+            </span>
+
+            <span className="chip">
+              Odpoczynek {dr.rest}s
+            </span>
+
+            <span className="chip">
+              {dr.difficulty}
+            </span>
+          </div>
+
+          <div
+            className="row"
+            style={{ marginTop: 10 }}
+          >
+            <button
+              className="btnGhost btnSmall"
+              onClick={() => {
+                setEditingDrill(dr);
+                setBuilderOpen(true);
+              }}
+            >
+              Edytuj
+            </button>
+
+            <button
+              className="btnGhost btnSmall"
+              onClick={() => addToToday(dr)}
+            >
+              <CalendarIcon size={13} />
+              Dodaj do dziś
+            </button>
+
+            <button
+              className="btnDanger btnSmall"
+              onClick={() => deleteDrill(dr.id)}
+            >
+              <Trash2 size={13} />
+            </button>
+          </div>
+        </div>
+      ))}
+
+      {builderOpen && (
+        <DrillBuilder
+          initial={editingDrill}
+          onSave={saveDrill}
+          onClose={() => setBuilderOpen(false)}
+        />
+      )}
+
+      {workoutBuilderOpen && (
+        <FootballWorkoutBuilder
+          initial={
+            typeof workoutBuilderOpen === "object"
+              ? workoutBuilderOpen
+              : null
+          }
+          drills={data.drills}
+          onSave={saveWorkout}
+          onClose={() => setWorkoutBuilderOpen(false)}
+        />
+      )}
     </div>
   );
 }
