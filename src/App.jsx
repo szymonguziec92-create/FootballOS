@@ -1915,7 +1915,12 @@ function FootballTraining({ data, update }) {
               </div>
             </div>
           ))}
-
+       <button
+  className="btn btnSmall"
+  onClick={() => setPlayingWorkout(workout)}
+>
+  ▶ Rozpocznij
+</button>
           <div
             className="row"
             style={{
@@ -2078,10 +2083,18 @@ function FootballTraining({ data, update }) {
           onSave={saveWorkout}
           onClose={() => setWorkoutBuilderOpen(false)}
         />
+      {playingWorkout && (
+  <FootballWorkoutPlayer
+    workout={playingWorkout}
+    onFinish={() => setPlayingWorkout(null)}
+    onClose={() => setPlayingWorkout(null)}
+  />
+)}
       )}
     </div>
   );
 }
+
 function FootballWorkoutBuilder({
   initial,
   drills,
