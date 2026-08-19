@@ -1033,7 +1033,7 @@ function TodayTab({ data, update, goTo }) {
   const carbsToday = diaryToday.reduce((s, i) => s + i.carbs, 0);
   const fatToday = diaryToday.reduce((s, i) => s + i.fat, 0);
   const kcalTarget = data.profile.kcalTarget || 2600;
-  const waterToday = data.water[t] || 0;
+  const waterToday = getWaterAmount(data, t);
   const waterTarget = data.profile.waterTarget || 2200;
   const addWater = (ml) => update((d) => { d.water[t] = Math.max(0, (d.water[t] || 0) + ml); return d; });
   const weekStart = startOfWeek(t);
