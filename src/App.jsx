@@ -2946,10 +2946,55 @@ function FootballWorkoutPlayer({ workout, onFinish, onClose }) {
 }
 function WorkoutPlayer({ workout, exercises, onLogExercise, onFinish, onClose }) {
   const list = workout.exIds.map((id) => exercises.find((e) => e.id === id)).filter(Boolean);
+  const warmupSeconds = Number(workout.warmup || 0) * 60;
+  const hasWarmup = warmupSeconds > 0;
   const [idx, setIdx] = useState(0);
-  const [phase, setPhase] = useState("exercise"); // exercise | rest
+  const [phase, setPhase] = useState(
+  hasWarmup ? "warmup" : "exercise"
+);
   const [weight, setWeight] = useState("");
   const current = list[idx];
+  if (phase === "warmup") {
+  return (
+    <Modal
+      title={`${workout.name} — Rozgrzewka`}
+      onClose={onClose}
+    >
+      <div
+        className="card"
+        style={{ textAlign: "center" }}
+      >
+        <div className="cardTitle">
+          🔥 Rozgrzewka
+        </div>
+
+        <div
+          className="muted"
+          style={{ marginBottom: 12 }}
+        >
+          Przygotuj się przed rozpoczęciem ćwiczeń.
+        </div>
+
+        <Timer
+          seconds={warmupSeconds}
+          onDone={() => setPhase("exercise")}
+        />
+
+        <button
+          className="btn"
+          style={{
+            width: "100%",
+            justifyContent: "center",
+            marginTop: 12,
+          }}
+          onClick={() => setPhase("exercise")}
+        >
+          ⏭ Pomiń rozgrzewkę
+        </button>
+      </div>
+    </Modal>
+  );
+}
 
   if (list.length === 0) {
     return <Modal title={workout.name} onClose={onClose}><div className="listEmpty">Ten trening nie ma ćwiczeń.</div></Modal>;
