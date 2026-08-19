@@ -2102,18 +2102,20 @@ function FootballTraining({ data, update }) {
         />
       )}
 
-      {workoutBuilderOpen && (
-        <FootballWorkoutBuilder
-          initial={
-            typeof workoutBuilderOpen === "object"
-              ? workoutBuilderOpen
-              : null
-          }
-          drills={data.drills}
-          onSave={saveWorkout}
-          onClose={() => setWorkoutBuilderOpen(false)}
-        />
-      {playingWorkout && (
+    {workoutBuilderOpen && (
+  <FootballWorkoutBuilder
+    initial={
+      typeof workoutBuilderOpen === "object"
+        ? workoutBuilderOpen
+        : null
+    }
+    drills={data.drills}
+    onSave={saveWorkout}
+    onClose={() => setWorkoutBuilderOpen(false)}
+  />
+)}
+
+{playingWorkout && (
   <FootballWorkoutPlayer
     workout={playingWorkout}
     onFinish={() => setPlayingWorkout(null)}
