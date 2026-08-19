@@ -1029,6 +1029,12 @@ function TodayTab({ data, update, goTo }) {
     .sort((a, b) => diffDays(t, a.date) - diffDays(t, b.date));
   const habitsDone = (data.habitLog[t] || []);
   const diaryToday = data.diary[t] || [];
+  const dietSummary = getDietSummary(
+  diaryToday,
+  data.profile.kcalTarget || 2600
+);
+
+  const dailySnack = getDailySnack(new Date());
   const kcalToday = diaryToday.reduce((s, i) => s + i.kcal, 0);
   const proteinToday = diaryToday.reduce((s, i) => s + i.protein, 0);
   const carbsToday = diaryToday.reduce((s, i) => s + i.carbs, 0);
