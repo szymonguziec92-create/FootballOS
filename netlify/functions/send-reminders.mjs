@@ -143,10 +143,15 @@ const reminderTime = new Date(
 
     if (sentReminders[reminderKey]) continue;
 
-    const title =
-      event.category === "match"
-        ? "⚽ Mecz za 30 minut!"
-        : "🏃 Trening za 30 minut!";
+   const reminderText =
+  reminderMinutes === 1
+    ? "za 1 minutę"
+    : `za ${reminderMinutes} minut`;
+
+const title =
+  event.category === "match"
+    ? `⚽ Mecz ${reminderText}!`
+    : `🏃 Trening ${reminderText}!`;
 
     const body = event.title || "Masz zaplanowane wydarzenie.";
 
