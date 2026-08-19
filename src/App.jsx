@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { getDailySnack, getDietSummary } from "./snack-utils.js";
 import { getWaterAmount, changeWater } from "./water-utils.js";
 import TrainingGeneratorTabNew from "./TrainingGeneratorTabNew.jsx";
 import { getStoredSession, restoreSession, signInWithPassword, signUpWithPassword, signOutCloud, loadCloudData, saveCloudData } from "./cloud-sync.js";
