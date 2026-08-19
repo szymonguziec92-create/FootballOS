@@ -27,10 +27,16 @@ function getFirebaseApp() {
   }
 
   if (!appCheckInitialized) {
-    initializeAppCheck(app, {
-      provider: new DebugProvider(),
-      isTokenAutoRefreshEnabled: true,
-    });
+    try {
+      initializeAppCheck(app, {
+        provider: new DebugProvider(),
+        isTokenAutoRefreshEnabled: true,
+      });
+    } catch (error) {
+      if (!String(error?.message || "").toLowerCase().includes("already")) {
+        throw error;
+      }
+    }
     appCheckInitialized = true;
   }
 
