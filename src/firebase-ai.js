@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeAppCheck, DebugProvider } from "firebase/app-check";
 import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 
 const firebaseConfig = {
@@ -13,15 +14,41 @@ const firebaseConfig = {
 const isConfigured = Object.values(firebaseConfig).every(Boolean);
 
 let model = null;
+let app = null;
+let appCheckInitialized = false;
 
-function getModel() {
+function getFirebaseApp() {
   if (!isConfigured) {
     throw new Error("FIREBASE_AI_NOT_CONFIGURED");
   }
 
+  if (!app) {
+    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  }
+
+  if (!appCheckInitialized) {
+    try {
+      initializeAppCheck(app, {
+        provider: new DebugProvider(),
+        isTokenAutoRefreshEnabled: true,
+      });
+    } catch (error) {
+      // App Check can already be initialized during hot reload.
+      if (!String(error?.message || "").toLowerCase().includes("already")) {
+        throw error;
+      }
+    }
+    appCheckInitialized = true;
+  }
+
+  return app;
+}
+
+function getModel() {
+  const firebaseApp = getFirebaseApp();
+
   if (!model) {
-    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-    const ai = getAI(app, { backend: new GoogleAIBackend() });
+    const ai = getAI(firebaseApp, { backend: new GoogleAIBackend() });
     model = getGenerativeModel(ai, {
       model: "gemini-3.6-flash",
     });
