@@ -2722,7 +2722,19 @@ function StrengthWorkoutBuilder({ exercises, onSave, onClose }) {
         ))}
       </div>
       <button className="btn" style={{ width: "100%", justifyContent: "center", marginTop: 10 }}
-        onClick={() => name.trim() && exIds.length && onSave({ id: uid(), name, groups, exIds, preset: false })}><Save size={16} /> Zapisz trening</button>
+       onClick={() =>
+  name.trim() &&
+  exIds.length &&
+  onSave({
+    id: uid(),
+    name,
+    groups,
+    exIds,
+    warmup: Number(warmup) || 0,
+    preset: false
+  })
+} 
+      }><Save size={16} /> Zapisz trening</button>
     </Modal>
   );
 }
