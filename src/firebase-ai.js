@@ -1,5 +1,4 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { initializeAppCheck, DebugProvider } from "firebase/app-check";
 import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 
 const firebaseConfig = {
@@ -15,7 +14,6 @@ const isConfigured = Object.values(firebaseConfig).every(Boolean);
 
 let model = null;
 let app = null;
-let appCheckInitialized = false;
 
 function getFirebaseApp() {
   if (!isConfigured) {
@@ -24,21 +22,6 @@ function getFirebaseApp() {
 
   if (!app) {
     app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-  }
-
-  if (!appCheckInitialized) {
-    try {
-      initializeAppCheck(app, {
-        provider: new DebugProvider(),
-        isTokenAutoRefreshEnabled: true,
-      });
-    } catch (error) {
-      // App Check can already be initialized during hot reload.
-      if (!String(error?.message || "").toLowerCase().includes("already")) {
-        throw error;
-      }
-    }
-    appCheckInitialized = true;
   }
 
   return app;
@@ -57,20 +40,29 @@ function getModel() {
   return model;
 }
 
-function toFirebaseContents(messages) {
-  const contents = [];
+function toFirebaseParts(messages, system = "") {
+  const parts = [];
+
+  if (system) {
+    parts.push({
+      text: `Instrukcja systemowa:\n${system}`,
+    });
+  }
 
   for (const message of messages || []) {
-    const parts = [];
-
     if (typeof message.content === "string" && message.content.trim()) {
-      parts.push({ text: message.content });
+      parts.push({
+        text: `${message.role === "assistant" ? "Asystent" : "Użytkownik"}: ${message.content}`,
+      });
+      continue;
     }
 
     if (Array.isArray(message.content)) {
       for (const item of message.content) {
-        if (item.type === "text") {
-          parts.push({ text: item.text || "" });
+        if (item.type === "text" && item.text) {
+          parts.push({
+            text: `${message.role === "assistant" ? "Asystent" : "Użytkownik"}: ${item.text}`,
+          });
         }
 
         if (item.type === "image" && item.source?.data) {
@@ -83,16 +75,9 @@ function toFirebaseContents(messages) {
         }
       }
     }
-
-    if (parts.length) {
-      contents.push({
-        role: message.role === "assistant" ? "model" : "user",
-        parts,
-      });
-    }
   }
 
-  return contents;
+  return parts;
 }
 
 export function firebaseAIConfigured() {
@@ -101,15 +86,12 @@ export function firebaseAIConfigured() {
 
 export async function firebaseAICall({ system = "", messages = [] }) {
   const generativeModel = getModel();
-  const contents = toFirebaseContents(messages);
+  const parts = toFirebaseParts(messages, system);
 
-  if (system) {
-    contents.unshift({
-      role: "user",
-      parts: [{ text: `Instrukcja systemowa:\n${system}` }],
-    });
+  if (!parts.length) {
+    throw new Error("FIREBASE_AI_EMPTY_PROMPT");
   }
 
-  const result = await generativeModel.generateContent(contents);
+  const result = await generativeModel.generateContent(parts);
   return result.response.text() || "";
 }
