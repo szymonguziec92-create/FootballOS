@@ -3215,6 +3215,7 @@ function computeMealMacros(meal, foodsDb) {
 function DietTab({ data, update }) {
   const [tab2, setTab2] = useState("log");
   const t = todayISO();
+  const dailySnack = getDailySnack();
 
   const [mealSlot, setMealSlot] = useState("other");
 
