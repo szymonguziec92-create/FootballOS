@@ -4296,32 +4296,7 @@ function TrainingGeneratorTab({ data }) {
   setGenerated(result);
 };
 
-  // Jeśli nie znaleziono ćwiczeń dla celu,
-  // generator korzysta ze wszystkich ćwiczeń.
-  const pool = matching.length > 0 ? matching : allDrills;
-
-  const shuffled = [...pool].sort(() => Math.random() - 0.5);
-
-  let total = 0;
-  const result = [];
-
-  for (const drill of shuffled) {
-    if (total >= duration) break;
-
-    const drillDuration = Number(drill.duration) || 5;
-    const remaining = duration - total;
-    const mins = Math.min(drillDuration, remaining);
-
-    result.push({
-      ...drill,
-      generatedDuration: mins,
-    });
-
-    total += mins;
-  }
-
-  setGenerated(result);
-};
+ 
 
   return (
     <div>
