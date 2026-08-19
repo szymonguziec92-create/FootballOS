@@ -124,9 +124,14 @@ if (schoolTomorrow.length > 0) {
     }
 
     const eventTime = new Date(`${event.date}T${event.time}:00+02:00`);
-    const reminderTime = new Date(
-      eventTime.getTime() - 30 * 60 * 1000
-    );
+   const reminderMinutes =
+  Number.isFinite(Number(event.reminderMinutes))
+    ? Number(event.reminderMinutes)
+    : 30;
+
+const reminderTime = new Date(
+  eventTime.getTime() - reminderMinutes * 60 * 1000
+);
 
     const difference = Math.abs(
       now.getTime() - reminderTime.getTime()
