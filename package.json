@@ -32,12 +32,12 @@
   "build": {
   "appId": "pl.footballos.app",
   "productName": "FootballOS",
-  "publish": [
-    {
-      "provider": "github",
-      "owner": "TWOJ_LOGIN_GITHUB",
-      "repo": "TWOJE_REPO
-    }
+ "publish": [
+  {
+    "provider": "github",
+    "owner": "szymonguziec92-create",
+    "repo": "FootballOS"
+  }
   ],
     "files": [
       "dist/**/*",
