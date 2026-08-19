@@ -701,7 +701,12 @@ export default function App() {
         {tab === "profile" && <ProfileTab data={data} update={update} onImport={importBackup} />}
         {tab === "badges" && <BadgesTab data={data} />}
         {tab === "report" && <WeeklyReportTab data={data} />}
-        {tab === "generator" && <TrainingGeneratorTab data={data} />}
+        {tab === "generator" && (
+  <TrainingGeneratorTabNew
+    data={data}
+    update={update}
+  />
+)}
         {tab === "matches" && <MatchJournalTab data={data} update={update} />}
       </main>
 
