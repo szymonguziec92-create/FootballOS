@@ -16,6 +16,7 @@
     "@netlify/blobs": "^10.7.13",
     "@zxing/browser": "^0.1.5",
     "electron-updater": "^6.8.9",
+    "firebase": "^12.1.0",
     "lucide-react": "^0.383.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -30,15 +31,15 @@
     "vite-plugin-pwa": "^0.20.5"
   },
   "build": {
-  "appId": "pl.footballos.app",
-  "productName": "FootballOS",
- "publish": [
-  {
-    "provider": "github",
-    "owner": "szymonguziec92-create",
-    "repo": "FootballOS"
-  }
-  ],
+    "appId": "pl.footballos.app",
+    "productName": "FootballOS",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "szymonguziec92-create",
+        "repo": "FootballOS"
+      }
+    ],
     "files": [
       "dist/**/*",
       "electron.cjs",
