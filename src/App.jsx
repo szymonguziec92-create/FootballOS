@@ -3775,11 +3775,14 @@ function PhotoMealCapture({ profile, onClose, onAdd }) {
       const clean = text.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(clean);
       setResult({ name: parsed.name || "Posiłek ze zdjęcia", kcal: Number(parsed.kcal) || 0, protein: Number(parsed.protein) || 0, carbs: Number(parsed.carbs) || 0, fat: Number(parsed.fat) || 0, note: parsed.note || "" });
-    } catch (e) {
-      setError(e.code === "NO_PROVIDER"
-        ? "Funkcja AI wymaga darmowego klucza Google Gemini albo klucza Anthropic — dodaj go w zakładce Profil, albo dodaj produkt ręcznie."
-        : "Nie udało się rozpoznać posiłku. Spróbuj innego zdjęcia albo dodaj produkt ręcznie.");
-    }
+   } catch (e) {
+  console.error("AI PHOTO ERROR:", e);
+
+  setError(
+    e?.message ||
+    "Nie udało się rozpoznać posiłku."
+  );
+}
     setLoading(false);
   };
 
